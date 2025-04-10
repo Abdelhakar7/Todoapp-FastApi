@@ -1,0 +1,15 @@
+# Ignore Python virtual environment
+todoenv/
+
+# Ignore compiled Python files
+*.pyc
+__pycache__/
+
+# Ignore environment variables
+.env
+
+# Ignore log files
+*.log
+
+# Ignore node_modules if using Node.js
+node_modules/
