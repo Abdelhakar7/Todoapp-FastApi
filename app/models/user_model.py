@@ -1,18 +1,20 @@
 from typing import Optional
-from datetime import datetime
 from uuid import UUID, uuid4
-from beanie import Document, Indexed
+from datetime import datetime
+from beanie import Document
 from pydantic import Field, EmailStr
+
+from pymongo import IndexModel  # Add this import
 
 class User(Document):
     user_id: UUID = Field(default_factory=uuid4)
-    username:str= Indexed(str, unique=True)
-    email: EmailStr= Indexed(EmailStr, unique=True)
+    username: str
+    email: EmailStr
     hashed_pwd: str
-    first_name: Optional[str] = None 
+    first_name: Optional[str] = None
     last_name: Optional[str] = None
     disabled: Optional[bool] = None
-    
+
     def __repr__(self) -> str:
         return f"<User {self.email}>"
 
@@ -23,18 +25,19 @@ class User(Document):
         return hash(self.email)
 
     def __eq__(self, other: object) -> bool:
-        if isinstance(other, User):
-            return self.email == other.email
-        return False
-    
+        return isinstance(other, User) and self.email == other.email
+
     @property
     def create(self) -> datetime:
         return self.id.generation_time
-    
+
     @classmethod
-    async def by_email(self, email: str) -> "User":
-        return await self.find_one(self.email == email)
-    
+    async def by_email(cls, email: str) -> "User":
+        return await cls.find_one(cls.email == email)
+
     class Settings:
         name = "users"
-        use_state_management = True  # Required for proper document tracking
+        indexes = [
+            IndexModel([("username", 1)], unique=True),  # Use IndexModel
+            IndexModel([("email", 1)], unique=True)      # Use IndexModel
+        ]
